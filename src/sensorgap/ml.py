@@ -231,6 +231,11 @@ class MLGapFiller:
                               scoring="neg_root_mean_squared_error")
         search.fit(X[FEATURES], r, groups=groups)
         self.model_ = search.best_estimator_
+        # Predict serially: filling a gap involves few samples, and starting
+        # parallel workers costs more than the prediction itself (measured
+        # 2-4x faster for n <= 1e4 in scripts/04_profile_performance.py).
+        if "n_jobs" in self.model_.get_params():
+            self.model_.set_params(n_jobs=1)
         self.best_params_ = search.best_params_
         self.cv_rmse_ = -search.best_score_
 

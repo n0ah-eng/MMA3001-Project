@@ -1,0 +1,6 @@
+method,n,peak_MB
+linear,100000,2.601191
+cubic,100000,13.844833
+pchip,100000,10.244279
+akima,100000,13.844932
+random_forest,100000,4.7683

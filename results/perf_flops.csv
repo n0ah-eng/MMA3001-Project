@@ -1,0 +1,3 @@
+method,flops,bytes,note,arithmetic_intensity
+linear,50000,400000,5 FLOPs per query + binary search,0.125
+cubic,1860000,6160000,O(n) tridiagonal solve + 6 FLOPs/query,0.30194805194805197
