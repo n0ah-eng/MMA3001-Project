@@ -1,0 +1,23 @@
+         9303314 function calls (9167259 primitive calls) in 33.681 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1395 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     6222    0.082    0.000   46.772    0.008 /usr/local/lib/python3.13/dist-packages/joblib/parallel.py:1692(_get_outputs)
+      119    0.002    0.000   42.207    0.355 /usr/lib/python3.13/multiprocessing/pool.py:500(_wait_for_updates)
+        1    0.000    0.000   33.698   33.698 /home/claude/MMA3001-Project/src/sensorgap/ml.py:210(fit)
+      482    0.004    0.000   33.507    0.070 /usr/lib/python3.13/multiprocessing/connection.py:1160(wait)
+     73/3    0.001    0.000   33.502   11.167 /usr/local/lib/python3.13/dist-packages/sklearn/utils/parallel.py:54(__call__)
+     73/3    0.003    0.000   33.502   11.167 /usr/local/lib/python3.13/dist-packages/joblib/parallel.py:1995(__call__)
+  7135/36    0.246    0.000   33.470    0.930 /usr/local/lib/python3.13/dist-packages/sklearn/utils/parallel.py:140(__call__)
+     37/6    0.001    0.000   33.442    5.574 /usr/local/lib/python3.13/dist-packages/sklearn/base.py:1381(wrapper)
+      482    0.007    0.000   33.344    0.069 /usr/lib/python3.13/selectors.py:385(select)
+  1059/39    0.015    0.000   32.633    0.837 /usr/local/lib/python3.13/dist-packages/joblib/parallel.py:1914(_get_sequential_output)
+       36    0.005    0.000   31.563    0.877 /usr/local/lib/python3.13/dist-packages/sklearn/ensemble/_forest.py:302(fit)
+        1    0.000    0.000   26.790   26.790 /usr/local/lib/python3.13/dist-packages/sklearn/model_selection/_search.py:960(fit)
+        1    0.000    0.000   25.847   25.847 /usr/local/lib/python3.13/dist-packages/sklearn/model_selection/_search.py:1711(_run_search)
+        1    0.000    0.000   25.846   25.846 /usr/local/lib/python3.13/dist-packages/sklearn/model_selection/_search.py:1043(evaluate_candidates)
+       30    0.001    0.000   25.814    0.860 /usr/local/lib/python3.13/dist-packages/sklearn/model_selection/_validation.py:670(_fit_and_score)
+
+
