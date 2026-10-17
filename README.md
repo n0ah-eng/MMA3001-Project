@@ -8,7 +8,8 @@ shows) re-upload stale data. This project develops and validates methods for **r
 missing sensor readings**, and quantifies how long a gap each method can fill before its error
 becomes unacceptable for engineering use.
 
-> **Status:** in development. Data pipeline complete; reconstruction methods in progress.
+> **Status:** code complete (data pipeline, interpolation, ML, validation, performance analysis).
+> Report in preparation.
 
 ---
 
@@ -34,7 +35,45 @@ becomes unacceptable for engineering use.
 
 Values outside the valid domain are treated as sensor faults and set to `NaN` before processing.
 
-**Output:** the same series with gaps filled, plus a per-gap error estimate (*in progress*).
+**Output:** the same series with every interior gap filled (same index, units and columns).
+Leading/trailing gaps are left as `NaN` (filling them would be extrapolation). The expected
+accuracy of a fill depends on the gap length and is reported in `results/ml_comparison_summary.csv`.
+
+**Invalid or unsupported inputs:** non-datetime index → `TypeError`; fewer than two known samples →
+`ValueError`; an unrecognised variable or unit in the raw export → `ValueError` (a silent unit change
+would corrupt every later calculation); corrupt JSON rows are dropped and counted.
+
+## Methods
+
+| Method | Type | Idea |
+|---|---|---|
+| Mean fill | naive reference | Fill with the record mean; the "no-skill" yardstick |
+| Linear | interpolation (baseline) | Straight line between the neighbouring known samples |
+| Cubic spline | interpolation | C² piecewise cubic via an O(n) tridiagonal solve; can overshoot |
+| PCHIP | interpolation | Shape-preserving piecewise cubic; never overshoots |
+| Akima | interpolation | Locally weighted slopes; fewer wiggles than cubic |
+| Ridge / k-NN / Random forest | machine learning | Predict the *correction* to linear interpolation from time of day, weekday/weekend, gap geometry and yesterday's shape; applied only on gap lengths where cross-validation shows it helps ("gating") |
+
+**Validation:** blocks of real data are hidden (10 min – 24 h gaps, 30 gaps × 5 seeds) and
+reconstructed; all methods see identical gaps. ML is trained on the first 70 % of each record
+(hyperparameters by blocked 5-fold cross-validation) and every method is scored on the last 30 %.
+A method passes if RMSE ≤ 0.5 °C / 50 ppm **and** it removes at least half the error of mean fill
+(skill ≥ 0.5).
+
+## Key results
+
+![RMSE vs gap length](results/figures/fig2_rmse_vs_gap.png)
+
+- **Higher order is not better:** the cubic spline is the worst method on long gaps and overshoots
+  the bracketing values on up to 96 % of filled CO₂ samples; linear and PCHIP never overshoot.
+- **Temperature** can be filled acceptably up to **3 h** by any good method; beyond that all fail
+  the 0.5 °C criterion.
+- **ML helps on long gaps:** the gated random forest cuts 24 h temperature error by ~41–43 %
+  relative to linear interpolation, by learning the daily cycle.
+- **CO₂** is not predictable from time features in these low-occupancy rooms; ML adds nothing.
+- **Performance:** spline fills scale as O(n) (measured log-log slope ≈ 1.0); all methods are
+  memory-bound (arithmetic intensity ≈ 0.1–0.3 FLOP/byte). Serial random-forest prediction is
+  ~2.5× faster than parallel for typical gap sizes.
 
 ## Data findings (audit of the raw export)
 
@@ -67,11 +106,18 @@ The raw export (`5EnvSensor_MayToDec2024_180kRows.csv`, 179,447 rows) required s
 ├── docs/                  HTML API documentation (pdoc)
 ├── notebooks/             exploratory analysis and figures
 ├── results/               audit tables, metrics and figures
-├── scripts/
-│   └── 01_build_clean_dataset.py
+├── scripts/               run in order (see Setup and usage)
+│   ├── 01_build_clean_dataset.py
+│   ├── 02_validate_interpolation.py
+│   ├── 03_compare_ml.py
+│   ├── 04_profile_performance.py
+│   └── 05_make_figures.py
 ├── src/sensorgap/         the Python package
 │   ├── io.py              raw export loading and JSON parsing
-│   └── cleaning.py        de-duplication, bounds, regular grid, gap detection
+│   ├── cleaning.py        de-duplication, bounds, regular grid, gap detection
+│   ├── interpolation.py   linear, cubic, PCHIP, Akima and mean-fill methods
+│   ├── validation.py      mask-and-reconstruct experiments, metrics, skill
+│   └── ml.py              ML residual-correction gap fillers
 ├── tests/                 pytest unit tests
 ├── pyproject.toml
 ├── requirements.txt
@@ -97,10 +143,15 @@ python -m pip install -e .         # installs the sensorgap package (editable)
 > `ModuleNotFoundError: No module named 'sensorgap'`.
 
 1. Place the raw files in `data/raw/` (see [`data/README.md`](data/README.md)).
-2. Build the cleaned dataset:
+2. Run the pipeline (approximate runtimes on a laptop):
    ```bash
-   python scripts/01_build_clean_dataset.py
+   python scripts/01_build_clean_dataset.py     # ~1 min  - clean, audit, grid
+   python scripts/02_validate_interpolation.py  # ~10 s   - interpolation study
+   python scripts/03_compare_ml.py              # ~4 min  - ML vs interpolation (test period)
+   python scripts/04_profile_performance.py     # ~1.5 min - timing, memory, FLOPs
+   python scripts/05_make_figures.py            # ~30 s   - report figures
    ```
+   All gap placement is seeded, so results are reproducible run to run.
 3. Run the tests:
    ```bash
    pytest                                         # quick run
@@ -113,7 +164,23 @@ python -m pip install -e .         # installs the sensorgap package (editable)
 
 ## AI usage
 
-<!-- Keep your existing AI acknowledgement template here. -->
+AI acknowledgement template: 
+
+1. What AI Was Used:
+
+[List specific AI tools used, including version numbers and access dates (e.g., 'Google Gemini 2.5 LLM (accessed June 2024)', 'Microsoft Copilot (accessed May-July 2024)', 'GitHub Copilot (Version X.Y, accessed monthly)').]
+[Mention any known biases or limitations you encountered with these tools, if applicable.]
+
+2. How AI Was Used:
+
+[Describe the specific tasks or aspects of your project where AI provided assistance (e.g., 'generated initial code snippets for data processing', 'helped brainstorm ideas for algorithm design', 'assisted with drafting explanatory text and markdown formatting', 'identified potential libraries for X task').]
+[Explain how the AI contributions were integrated, modified, or expanded upon by you (e.g., 'AI-generated code was adapted and optimized for specific data structures', 'prompts were iteratively refined to achieve desired output', 'AI-generated text was reviewed, edited, and expanded with detailed explanations').]
+
+3. Statement of Human Oversight and Responsibility:
+
+[Clearly state the steps you took to validate the outputs from the AI (e.g., 'All AI-generated code was thoroughly tested and debugged', 'factual information provided by AI was cross-referenced with academic sources', 'design suggestions were critically evaluated against project requirements and best practices').]
+[Affirm your ultimate responsibility for the final project, its conclusions, and its accuracy (e.g., 'The author is solely responsible for the final content, accuracy, and conclusions presented in this project, having exercised critical human judgment and oversight throughout its development.').]
+
 
 ## License
 
