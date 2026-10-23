@@ -9,7 +9,7 @@ missing sensor readings**, and quantifies how long a gap each method can fill be
 becomes unacceptable for engineering use.
 
 > **Status:** code complete (data pipeline, interpolation, ML, validation, performance analysis).
-> Report in preparation.
+> Report complete. Submission ready.
 
 ---
 
@@ -162,24 +162,37 @@ python -m pip install -e .         # installs the sensorgap package (editable)
    pdoc src/sensorgap -o docs --docformat google
    ```
 
-## AI usage
+## AI Usage
 
-AI acknowledgement template: 
+**1. What AI Was Used:**
 
-1. What AI Was Used:
+Claude (Anthropic), via claude.ai, October 2026.
+Known limitations encountered: the AI occasionally produced confident but incorrect
+output, including a test with a wrong expected behaviour (spline overshoot) and an
+acceptance threshold that the naive mean fill could already pass. It also tended to
+generate code faster and at a higher level of complexity than I could fully follow
+line by line, so outputs had to be checked.
 
-[List specific AI tools used, including version numbers and access dates (e.g., 'Google Gemini 2.5 LLM (accessed June 2024)', 'Microsoft Copilot (accessed May-July 2024)', 'GitHub Copilot (Version X.Y, accessed monthly)').]
-[Mention any known biases or limitations you encountered with these tools, if applicable.]
+**2. How AI Was Used:**
 
-2. How AI Was Used:
+AI was used as a complementary tool to help with data auditing, code development,
+explanation of key concepts and functions, liaising ideas and feedback, GitHub
+navigation and version control, debugging and troubleshooting, and review of my
+report to keep its ideas consistent.
+AI-generated code was run, tested and adapted on my own machine, with prompts
+iteratively refined when results did not match expectations. Design suggestions
+(gap lengths, acceptance criteria, ML gating) were discussed and selected by me,
+and AI feedback on the report was reviewed, edited and rewritten in my own words.
 
-[Describe the specific tasks or aspects of your project where AI provided assistance (e.g., 'generated initial code snippets for data processing', 'helped brainstorm ideas for algorithm design', 'assisted with drafting explanatory text and markdown formatting', 'identified potential libraries for X task').]
-[Explain how the AI contributions were integrated, modified, or expanded upon by you (e.g., 'AI-generated code was adapted and optimized for specific data structures', 'prompts were iteratively refined to achieve desired output', 'AI-generated text was reviewed, edited, and expanded with detailed explanations').]
+**3. Statement of Human Oversight and Responsibility:**
 
-3. Statement of Human Oversight and Responsibility:
-
-[Clearly state the steps you took to validate the outputs from the AI (e.g., 'All AI-generated code was thoroughly tested and debugged', 'factual information provided by AI was cross-referenced with academic sources', 'design suggestions were critically evaluated against project requirements and best practices').]
-[Affirm your ultimate responsibility for the final project, its conclusions, and its accuracy (e.g., 'The author is solely responsible for the final content, accuracy, and conclusions presented in this project, having exercised critical human judgment and oversight throughout its development.').]
+All AI-generated code was verified by running the full pipeline and the 60 automated
+pytest tests, including checks against numerical-methods theory (e.g. convergence
+order of linear and cubic interpolation). Results were cross-checked against the raw
+data and figures, and design suggestions were critically evaluated against the project
+brief requirements and best practices. The author is solely responsible for the final
+content, accuracy, and conclusions presented in this project, having exercised critical
+human judgment and oversight throughout its development.
 
 
 ## License
